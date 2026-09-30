@@ -1,0 +1,9 @@
+benchmark,keyword_s,llm_prompt_s,change_pct
+HumanEval,25.4,87.2,242.9
+MBPP,85.9,92.5,7.7
+GSM8K,64.7,101.2,56.5
+MATH,15.3,29.0,90.1
+TruthfulQA,57.5,31.9,-44.5
+ARC,54.5,35.4,-35.2
+HellaSwag,38.7,39.5,1.9
+MMLU-Pro,21.6,32.5,50.1

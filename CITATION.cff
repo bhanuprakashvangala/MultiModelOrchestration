@@ -1,0 +1,24 @@
+cff-version: 1.2.0
+message: "If you use this code or data, please cite the paper."
+title: "Efficient Multi-Model Orchestration for Self-Hosted Large Language Models"
+repository-code: "https://github.com/bhanuprakashvangala/MultiModelOrchestration"
+license: MIT
+authors:
+  - family-names: Vangala
+    given-names: Bhanu Prakash
+  - family-names: Malik
+    given-names: Tanu
+preferred-citation:
+  type: conference-paper
+  title: "Efficient Multi-Model Orchestration for Self-Hosted Large Language Models"
+  collection-title: "DAI Workshop at AAAI 2026"
+  year: 2026
+  url: "https://arxiv.org/abs/2512.22402"
+  identifiers:
+    - type: other
+      value: "arXiv:2512.22402"
+  authors:
+    - family-names: Vangala
+      given-names: Bhanu Prakash
+    - family-names: Malik
+      given-names: Tanu

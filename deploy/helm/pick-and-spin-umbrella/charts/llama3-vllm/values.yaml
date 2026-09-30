@@ -1,0 +1,43 @@
+# Values for llama3-vllm
+replicaCount: 0  # Scale to zero when idle
+
+image:
+  repository: vllm/vllm-openai
+  pullPolicy: IfNotPresent
+  tag: "latest"
+
+model:
+  name: "meta-llama/Llama-3-90B"
+  size: "90B"
+  tier: "llama3"
+  backend: "vllm"
+  gpuCount: 2
+
+service:
+  type: ClusterIP
+  port: 8000
+  targetPort: 8000
+
+resources:
+  requests:
+    nvidia.com/gpu: 2
+    memory: 80Gi
+  limits:
+    nvidia.com/gpu: 2
+    memory: 80Gi
+
+persistence:
+  enabled: true
+  storageClass: "local-path"
+  size: 100Gi
+  mountPath: /models
+
+autoscaling:
+  enabled: true
+  minReplicas: 0
+  maxReplicas: 2
+  targetCPUUtilizationPercentage: 70
+
+nodeSelector: {}
+tolerations: []
+affinity: {}

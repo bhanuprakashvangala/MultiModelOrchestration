@@ -1,0 +1,89 @@
+claim,paper,reproduced,match
+Table 1 HumanEval: runs / success / failures,820 / 656 / 164,820 / 656 / 164,yes
+Table 1 HumanEval: success (%),80.0,80.0,yes
+Table 1 GSM8K: runs / success / failures,"6,595 / 5,924 / 671","6,595 / 5,924 / 671",yes
+Table 1 GSM8K: success (%),89.8,89.8,yes
+Table 1 MBPP: runs / success / failures,"2,500 / 1,736 / 764","2,500 / 1,736 / 764",yes
+Table 1 MBPP: success (%),69.4,69.4,yes
+Table 1 TruthfulQA: runs / success / failures,"3,950 / 3,167 / 783","3,950 / 3,167 / 783",yes
+Table 1 TruthfulQA: success (%),80.2,80.2,yes
+Table 1 ARC: runs / success / failures,"5,860 / 4,704 / 1,156","5,860 / 4,704 / 1,156",yes
+Table 1 ARC: success (%),80.3,80.3,yes
+Table 1 HellaSwag: runs / success / failures,"50,210 / 40,260 / 9,950","50,210 / 40,260 / 9,950",yes
+Table 1 HellaSwag: success (%),80.2,80.2,yes
+Table 1 MATH: runs / success / failures,"25,000 / 19,908 / 5,092","25,000 / 19,908 / 5,092",yes
+Table 1 MATH: success (%),79.6,79.6,yes
+Table 1 MMLU-Pro: runs / success / failures,"60,160 / 42,103 / 18,057","60,160 / 42,103 / 18,057",yes
+Table 1 MMLU-Pro: success (%),70.0,70.0,yes
+Prompts across 8 benchmarks,"31,019","31,019",yes
+Fig. 4 Keyword LOW: count,"6,961","6,961",yes
+Fig. 4 Keyword LOW: share (%),22.4,22.4,yes
+Fig. 4 Keyword MEDIUM: count,"22,594","22,594",yes
+Fig. 4 Keyword MEDIUM: share (%),72.8,72.8,yes
+Fig. 4 Keyword HIGH: count,"1,464","1,464",yes
+Fig. 4 Keyword HIGH: share (%),4.7,4.7,yes
+Fig. 4 LLM prompt LOW: count,"5,401","5,401",yes
+Fig. 4 LLM prompt LOW: share (%),17.4,17.4,yes
+Fig. 4 LLM prompt MEDIUM: count,"25,264","25,264",yes
+Fig. 4 LLM prompt MEDIUM: share (%),81.4,81.4,yes
+Fig. 4 LLM prompt HIGH: count,354,354,yes
+Fig. 4 LLM prompt HIGH: share (%),1.1,1.1,yes
+"Fig. 5 Keyword success, LOW (%)",100.0,100.0,yes
+"Fig. 5 Keyword success, MEDIUM (%)",97.2,97.2,yes
+"Fig. 5 Keyword success, HIGH (%)",99.6,99.6,yes
+"Fig. 5 Keyword success, Overall (%)",98.0,98.0,yes
+"Fig. 5 LLM prompt success, LOW (%)",100.0,100.0,yes
+"Fig. 5 LLM prompt success, MEDIUM (%)",95.1,95.1,yes
+"Fig. 5 LLM prompt success, HIGH (%)",95.8,95.8,yes
+"Fig. 5 LLM prompt success, Overall (%)",96.0,96.0,yes
+"Fig. 6 HumanEval median latency, keyword / LLM prompt (s)",57.1 / 110.5,57.1 / 110.5,yes
+Fig. 6/8 HumanEval LLM-prompt latency overhead (%),93.7,93.7,yes
+Fig. 8 HumanEval LLM-prompt latency overhead (s),53.5,53.5,yes
+"Fig. 6 MBPP median latency, keyword / LLM prompt (s)",103.0 / 110.4,103.0 / 110.4,yes
+Fig. 6/8 MBPP LLM-prompt latency overhead (%),7.1,7.1,yes
+Fig. 8 MBPP LLM-prompt latency overhead (s),7.4,7.4,yes
+"Fig. 6 GSM8K median latency, keyword / LLM prompt (s)",90.6 / 108.4,90.6 / 108.4,yes
+Fig. 6/8 GSM8K LLM-prompt latency overhead (%),19.7,19.7,yes
+Fig. 8 GSM8K LLM-prompt latency overhead (s),17.9,17.9,yes
+"Fig. 6 MATH median latency, keyword / LLM prompt (s)",64.3 / 76.5,64.3 / 76.5,yes
+Fig. 6/8 MATH LLM-prompt latency overhead (%),19.1,19.1,yes
+Fig. 8 MATH LLM-prompt latency overhead (s),12.3,12.3,yes
+"Fig. 6 TruthfulQA median latency, keyword / LLM prompt (s)",64.5 / 95.4,64.5 / 95.4,yes
+Fig. 6/8 TruthfulQA LLM-prompt latency overhead (%),48.0,48.0,yes
+Fig. 8 TruthfulQA LLM-prompt latency overhead (s),30.9,30.9,yes
+"Fig. 6 ARC median latency, keyword / LLM prompt (s)",75.4 / 80.2,75.4 / 80.2,yes
+Fig. 6/8 ARC LLM-prompt latency overhead (%),6.3,6.3,yes
+Fig. 8 ARC LLM-prompt latency overhead (s),4.7,4.7,yes
+"Fig. 6 HellaSwag median latency, keyword / LLM prompt (s)",45.1 / 56.9,45.1 / 56.9,yes
+Fig. 6/8 HellaSwag LLM-prompt latency overhead (%),26.1,26.1,yes
+Fig. 8 HellaSwag LLM-prompt latency overhead (s),11.8,11.8,yes
+"Fig. 6 MMLU-Pro median latency, keyword / LLM prompt (s)",44.1 / 55.1,44.1 / 55.1,yes
+Fig. 6/8 MMLU-Pro LLM-prompt latency overhead (%),24.8,24.8,yes
+Fig. 8 MMLU-Pro LLM-prompt latency overhead (s),11.0,11.0,yes
+Fig. 8 average absolute overhead (s),18.7,18.7,yes
+Fig. 8 average relative overhead (%),30.6,30.6,yes
+"Fig. 10 HumanEval median TTFT, keyword / LLM prompt (s)",25.4 / 87.2,25.4 / 87.2,yes
+Fig. 10 HumanEval TTFT change (%),242.9,242.9,yes
+"Fig. 10 MBPP median TTFT, keyword / LLM prompt (s)",85.9 / 92.5,85.9 / 92.5,yes
+Fig. 10 MBPP TTFT change (%),7.7,7.7,yes
+"Fig. 10 GSM8K median TTFT, keyword / LLM prompt (s)",64.7 / 101.2,64.7 / 101.2,yes
+Fig. 10 GSM8K TTFT change (%),56.5,56.5,yes
+"Fig. 10 MATH median TTFT, keyword / LLM prompt (s)",15.3 / 29.0,15.3 / 29.0,yes
+Fig. 10 MATH TTFT change (%),90.1,90.1,yes
+"Fig. 10 TruthfulQA median TTFT, keyword / LLM prompt (s)",57.5 / 31.9,57.5 / 31.9,yes
+Fig. 10 TruthfulQA TTFT change (%),-44.5,-44.5,yes
+"Fig. 10 ARC median TTFT, keyword / LLM prompt (s)",54.5 / 35.4,54.5 / 35.4,yes
+Fig. 10 ARC TTFT change (%),-35.2,-35.2,yes
+"Fig. 10 HellaSwag median TTFT, keyword / LLM prompt (s)",38.7 / 39.5,38.7 / 39.5,yes
+Fig. 10 HellaSwag TTFT change (%),1.9,1.9,yes
+"Fig. 10 MMLU-Pro median TTFT, keyword / LLM prompt (s)",21.6 / 32.5,21.6 / 32.5,yes
+Fig. 10 MMLU-Pro TTFT change (%),50.1,50.1,yes
+"Fig. 11 TTFT P50, keyword / LLM prompt (s)",45.5 / 56.2,45.5 / 56.2,yes
+"Fig. 11 TTFT P95, keyword / LLM prompt (s)",95.4 / 111.4,95.4 / 111.4,yes
+"Fig. 11 TTFT P99, keyword / LLM prompt (s)",106.7 / 117.9,106.7 / 117.9,yes
+Median TTFT increase with LLM-prompt routing (%),23.5,23.5,yes
+"Fig. 9 response speed (median latency), keyword / LLM prompt (s)",48.9 / 65.4,48.9 / 65.4,yes
+"Fig. 9 P95 latency, keyword / LLM prompt (s)",117.5 / 119.8,117.5 / 119.8,yes
+"Fig. 9 mean latency, keyword / LLM prompt (s)",55.4 / 65.1,55.4 / 65.1,yes
+"Fig. 9 scores success/speed/P95/mean, keyword",8.0 / 7.8 / 5.6 / 6.5,8.0 / 7.8 / 5.6 / 6.5,yes
+"Fig. 9 scores success/speed/P95/mean, LLM prompt",6.0 / 3.6 / 5.0 / 3.3,6.0 / 3.6 / 5.0 / 3.3,yes

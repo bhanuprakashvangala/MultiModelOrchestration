@@ -1,0 +1,6 @@
+apiVersion: v2
+name: qwen3-vllm
+description: Qwen/Qwen-3-235B on VLLM inference backend
+type: application
+version: 0.1.0
+appVersion: "1.0"

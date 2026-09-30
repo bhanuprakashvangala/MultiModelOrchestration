@@ -1,0 +1,50 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "qwen3-tgi.fullname" . }}
+  labels:
+    {{- include "qwen3-tgi.labels" . | nindent 4 }}
+spec:
+  {{- if not .Values.autoscaling.enabled }}
+  replicas: {{ .Values.replicaCount }}
+  {{- end }}
+  selector:
+    matchLabels:
+      {{- include "qwen3-tgi.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "qwen3-tgi.selectorLabels" . | nindent 8 }}
+    spec:
+      containers:
+      - name: tgi
+        image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+        imagePullPolicy: {{ .Values.image.pullPolicy }}
+        ports:
+        - name: http
+          containerPort: {{ .Values.service.targetPort }}
+          protocol: TCP
+        env:
+        - name: MODEL_NAME
+          value: "{{ .Values.model.name }}"
+        - name: TENSOR_PARALLEL_SIZE
+          value: "{{ .Values.model.gpuCount }}"
+        - name: MAX_MODEL_LEN
+          value: "8192"
+        resources:
+          {{- toYaml .Values.resources | nindent 12 }}
+        volumeMounts:
+        - name: model-storage
+          mountPath: {{ .Values.persistence.mountPath }}
+      volumes:
+      - name: model-storage
+        persistentVolumeClaim:
+          claimName: {{ include "qwen3-tgi.fullname" . }}-pvc
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}

@@ -1,0 +1,63 @@
+apiVersion: v2
+name: pick-and-spin-umbrella
+description: Umbrella Helm Chart for Pick and Spin Multi-Model LLM Orchestration
+type: application
+version: 0.1.0
+appVersion: "1.0"
+
+# Metadata
+keywords:
+  - llm
+  - kubernetes
+  - multi-model
+  - orchestration
+
+# Dependencies - 3 models x 3 inference backends = 9 subcharts
+dependencies:
+  # Llama3 (90B) - Medium tier
+  - name: llama3-vllm
+    version: "0.1.0"
+    repository: "file://./charts/llama3-vllm"
+    condition: llama3.vllm.enabled
+
+  - name: llama3-tgi
+    version: "0.1.0"
+    repository: "file://./charts/llama3-tgi"
+    condition: llama3.tgi.enabled
+
+  - name: llama3-tensorrt
+    version: "0.1.0"
+    repository: "file://./charts/llama3-tensorrt"
+    condition: llama3.tensorrt.enabled
+
+  # Gemma3 (27B) - Small tier
+  - name: gemma3-vllm
+    version: "0.1.0"
+    repository: "file://./charts/gemma3-vllm"
+    condition: gemma3.vllm.enabled
+
+  - name: gemma3-tgi
+    version: "0.1.0"
+    repository: "file://./charts/gemma3-tgi"
+    condition: gemma3.tgi.enabled
+
+  - name: gemma3-tensorrt
+    version: "0.1.0"
+    repository: "file://./charts/gemma3-tensorrt"
+    condition: gemma3.tensorrt.enabled
+
+  # Qwen3 (235B) - Large tier
+  - name: qwen3-vllm
+    version: "0.1.0"
+    repository: "file://./charts/qwen3-vllm"
+    condition: qwen3.vllm.enabled
+
+  - name: qwen3-tgi
+    version: "0.1.0"
+    repository: "file://./charts/qwen3-tgi"
+    condition: qwen3.tgi.enabled
+
+  - name: qwen3-tensorrt
+    version: "0.1.0"
+    repository: "file://./charts/qwen3-tensorrt"
+    condition: qwen3.tensorrt.enabled

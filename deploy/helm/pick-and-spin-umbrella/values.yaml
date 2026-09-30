@@ -1,0 +1,181 @@
+# Global configuration for all subcharts
+global:
+  namespace: llm-orchestration
+  storageClass: "local-path"  # Adjust based on your cluster
+
+  # Shared PVC for model weights
+  modelStorage:
+    enabled: true
+    size: 500Gi
+    accessMode: ReadWriteMany
+
+  # Autoscaling with Knative/KEDA
+  autoscaling:
+    enabled: true
+    minReplicas: 0  # Scale to zero when idle
+    maxReplicas: 3
+    targetCPUUtilization: 70
+    scaleDownDelay: 300  # 5 minutes
+
+  # Service registry for router
+  serviceRegistry:
+    enabled: true
+
+# Llama3 (90B) configuration - Medium tier (L2)
+llama3:
+  modelFamily: "llama3"
+  modelSize: "90B"
+  tier: "medium"
+
+  vllm:
+    enabled: true
+    image:
+      repository: vllm/vllm-openai
+      tag: latest
+    resources:
+      requests:
+        nvidia.com/gpu: 2
+        memory: 80Gi
+      limits:
+        nvidia.com/gpu: 2
+        memory: 80Gi
+    env:
+      MODEL_NAME: "meta-llama/Llama-3-90B"
+      MAX_MODEL_LEN: 8192
+      TENSOR_PARALLEL_SIZE: 2
+
+  tgi:
+    enabled: true
+    image:
+      repository: ghcr.io/huggingface/text-generation-inference
+      tag: latest
+    resources:
+      requests:
+        nvidia.com/gpu: 2
+        memory: 80Gi
+      limits:
+        nvidia.com/gpu: 2
+        memory: 80Gi
+    env:
+      MODEL_ID: "meta-llama/Llama-3-90B"
+      MAX_TOTAL_TOKENS: 8192
+      NUM_SHARD: 2
+
+  tensorrt:
+    enabled: false  # Optional - requires TensorRT-LLM setup
+    image:
+      repository: nvcr.io/nvidia/tensorrt-llm
+      tag: latest
+    resources:
+      requests:
+        nvidia.com/gpu: 2
+        memory: 80Gi
+      limits:
+        nvidia.com/gpu: 2
+        memory: 80Gi
+
+# Gemma3 (27B) configuration - Small tier (L1)
+gemma3:
+  modelFamily: "gemma3"
+  modelSize: "27B"
+  tier: "small"
+
+  vllm:
+    enabled: true
+    image:
+      repository: vllm/vllm-openai
+      tag: latest
+    resources:
+      requests:
+        nvidia.com/gpu: 1
+        memory: 32Gi
+      limits:
+        nvidia.com/gpu: 1
+        memory: 32Gi
+    env:
+      MODEL_NAME: "google/gemma-3-27b"
+      MAX_MODEL_LEN: 8192
+      TENSOR_PARALLEL_SIZE: 1
+
+  tgi:
+    enabled: true
+    image:
+      repository: ghcr.io/huggingface/text-generation-inference
+      tag: latest
+    resources:
+      requests:
+        nvidia.com/gpu: 1
+        memory: 32Gi
+      limits:
+        nvidia.com/gpu: 1
+        memory: 32Gi
+    env:
+      MODEL_ID: "google/gemma-3-27b"
+      MAX_TOTAL_TOKENS: 8192
+      NUM_SHARD: 1
+
+  tensorrt:
+    enabled: false
+    image:
+      repository: nvcr.io/nvidia/tensorrt-llm
+      tag: latest
+    resources:
+      requests:
+        nvidia.com/gpu: 1
+        memory: 32Gi
+      limits:
+        nvidia.com/gpu: 1
+        memory: 32Gi
+
+# Qwen3 (235B) configuration - Large tier (L3)
+qwen3:
+  modelFamily: "qwen3"
+  modelSize: "235B"
+  tier: "large"
+
+  vllm:
+    enabled: true
+    image:
+      repository: vllm/vllm-openai
+      tag: latest
+    resources:
+      requests:
+        nvidia.com/gpu: 4
+        memory: 160Gi
+      limits:
+        nvidia.com/gpu: 4
+        memory: 160Gi
+    env:
+      MODEL_NAME: "Qwen/Qwen-3-235B"
+      MAX_MODEL_LEN: 8192
+      TENSOR_PARALLEL_SIZE: 4
+
+  tgi:
+    enabled: true
+    image:
+      repository: ghcr.io/huggingface/text-generation-inference
+      tag: latest
+    resources:
+      requests:
+        nvidia.com/gpu: 4
+        memory: 160Gi
+      limits:
+        nvidia.com/gpu: 4
+        memory: 160Gi
+    env:
+      MODEL_ID: "Qwen/Qwen-3-235B"
+      MAX_TOTAL_TOKENS: 8192
+      NUM_SHARD: 4
+
+  tensorrt:
+    enabled: false
+    image:
+      repository: nvcr.io/nvidia/tensorrt-llm
+      tag: latest
+    resources:
+      requests:
+        nvidia.com/gpu: 4
+        memory: 160Gi
+      limits:
+        nvidia.com/gpu: 4
+        memory: 160Gi

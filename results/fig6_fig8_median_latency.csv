@@ -1,0 +1,9 @@
+benchmark,keyword_median_s,llm_prompt_median_s,overhead_s,overhead_pct
+HumanEval,57.1,110.5,53.5,93.7
+MBPP,103.0,110.4,7.4,7.1
+GSM8K,90.6,108.4,17.9,19.7
+MATH,64.3,76.5,12.3,19.1
+TruthfulQA,64.5,95.4,30.9,48.0
+ARC,75.4,80.2,4.7,6.3
+HellaSwag,45.1,56.9,11.8,26.1
+MMLU-Pro,44.1,55.1,11.0,24.8

@@ -1,0 +1,7 @@
+# Offline reproduction (scripts/reproduce.py)
+numpy>=1.24
+matplotlib>=3.7
+# Live runners (src/routing, src/baseline)
+openai>=1.30
+requests>=2.31
+pyyaml>=6.0

@@ -1,0 +1,23 @@
+# One Job per benchmark and routing method, as in the recorded runs.
+# Build an image from this repository, then:
+#   kubectl create secret generic llm-api --from-literal=LLM_API_BASE=https://.../v1 --from-literal=LLM_API_KEY=...
+#   kubectl apply -f deploy/jobs/smart-routing-job.yaml
+# Results are written inside the pod to results/live/; mount a volume there to keep them.
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: routing-keyword-humaneval
+spec:
+  backoffLimit: 1
+  template:
+    spec:
+      restartPolicy: Never
+      containers:
+        - name: runner
+          image: REPLACE_WITH_YOUR_IMAGE
+          command: ["python", "src/routing/smart_routing.py", "HumanEval", "--routing", "keyword", "--workers", "20"]
+          envFrom:
+            - secretRef: {name: llm-api}
+          resources:
+            requests: {cpu: "2", memory: 4Gi}
+            limits: {cpu: "4", memory: 8Gi}

@@ -1,0 +1,43 @@
+# Values for qwen3-tensorrt
+replicaCount: 0  # Scale to zero when idle
+
+image:
+  repository: nvcr.io/nvidia/tensorrt-llm
+  pullPolicy: IfNotPresent
+  tag: "latest"
+
+model:
+  name: "Qwen/Qwen-3-235B"
+  size: "235B"
+  tier: "qwen3"
+  backend: "tensorrt"
+  gpuCount: 4
+
+service:
+  type: ClusterIP
+  port: 8000
+  targetPort: 8000
+
+resources:
+  requests:
+    nvidia.com/gpu: 4
+    memory: 160Gi
+  limits:
+    nvidia.com/gpu: 4
+    memory: 160Gi
+
+persistence:
+  enabled: true
+  storageClass: "local-path"
+  size: 100Gi
+  mountPath: /models
+
+autoscaling:
+  enabled: true
+  minReplicas: 0
+  maxReplicas: 2
+  targetCPUUtilizationPercentage: 70
+
+nodeSelector: {}
+tolerations: []
+affinity: {}

@@ -1,0 +1,6 @@
+apiVersion: v2
+name: gemma3-vllm
+description: google/gemma-3-27b on VLLM inference backend
+type: application
+version: 0.1.0
+appVersion: "1.0"

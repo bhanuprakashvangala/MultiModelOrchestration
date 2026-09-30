@@ -1,0 +1,9 @@
+routing,complexity,success_pct
+Keyword,LOW,100.0
+Keyword,MEDIUM,97.2
+Keyword,HIGH,99.6
+Keyword,Overall,98.0
+LLM prompt,LOW,100.0
+LLM prompt,MEDIUM,95.1
+LLM prompt,HIGH,95.8
+LLM prompt,Overall,96.0

@@ -1,0 +1,7 @@
+routing,complexity,queries,pct
+Keyword,LOW,6961,22.4
+Keyword,MEDIUM,22594,72.8
+Keyword,HIGH,1464,4.7
+LLM prompt,LOW,5401,17.4
+LLM prompt,MEDIUM,25264,81.4
+LLM prompt,HIGH,354,1.1

@@ -1,0 +1,62 @@
+# Configuration for src/routing/multi_objective.py.
+# Credentials come from the environment: LLM_API_BASE, LLM_API_KEY (see .env.example).
+
+api:
+  base_url: "https://your-llm-endpoint.example.org/v1"   # overridden by LLM_API_BASE
+  timeout: 60
+
+# Relative per-model scores in [0, 1] used by the scorer.
+models:
+  qwen3:
+    api_name: "qwen3"
+    params: "235B"
+    cost_weight: 0.8      # higher = more expensive
+    speed_weight: 0.6
+    quality_weight: 0.9
+    tier: "large"
+  gemma3:
+    api_name: "gemma3"
+    params: "27B"
+    cost_weight: 0.3
+    speed_weight: 0.9
+    quality_weight: 0.7
+    tier: "small"
+  llama3:
+    api_name: "llama3"
+    params: "90B"
+    cost_weight: 0.5
+    speed_weight: 0.7
+    quality_weight: 0.8
+    tier: "medium"
+
+# Operator profiles (alpha = quality, lambda = speed, mu = cost), as in the paper.
+routing_strategies:
+  quality:
+    description: "Prioritize output quality"
+    weights: {quality: 1.0, speed: 0.1, cost: 0.1}
+  cost:
+    description: "Prioritize resource efficiency"
+    weights: {quality: 0.3, speed: 0.2, cost: 0.8}
+  speed:
+    description: "Prioritize response time"
+    weights: {quality: 0.3, speed: 0.8, cost: 0.2}
+  balanced:
+    description: "Balance quality, speed, and cost"
+    weights: {quality: 0.5, speed: 0.3, cost: 0.3}
+  baseline:
+    description: "Random selection"
+    weights: {quality: 0.33, speed: 0.33, cost: 0.33}
+
+complexity_detection:
+  use_llm: false                  # true: ask llm_model to classify; false: keyword rules below
+  llm_model: "gemma3"
+  fallback_to_keywords: true
+  simple_indicators: ["what is", "how many", "define", "name", "list"]
+  medium_indicators: ["explain", "compare", "describe", "how does"]
+  complex_indicators: ["analyze", "discuss", "evaluate", "implications", "mathematical foundations"]
+  simple_max_tokens: 100
+  medium_max_tokens: 300
+  complex_max_tokens: 500
+
+privacy:
+  sensitive_keywords: ["medical", "health", "diagnosis", "treatment", "patient", "confidential", "personal"]
