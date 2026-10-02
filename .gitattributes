@@ -1,0 +1,4 @@
+* text=auto
+*.gz binary
+*.png binary
+results/*.csv text eol=crlf
