@@ -947,12 +947,24 @@ def test_score_with_a_missing_config_exits_1(capsys: pytest.CaptureFixture[str],
     assert fake_scorer.calls == []
 
 
+def test_score_with_a_malformed_config_exits_1(
+    capsys: pytest.CaptureFixture[str], fake_scorer: SimpleNamespace, tmp_path: Path
+) -> None:
+    pytest.importorskip("yaml")
+    path = tmp_path / "bad.yaml"
+    path.write_text("api: {}\n", encoding="utf-8")
+    result = run(capsys, "score", "--config", str(path))
+    assert (result.status, result.out) == (1, "")
+    assert result.err == f"mmorch: error: {path}: missing required key 'base_url'\n"
+    assert fake_scorer.calls == []
+
+
 def test_score_without_yaml_names_the_extra(
     capsys: pytest.CaptureFixture[str], monkeypatch: pytest.MonkeyPatch
 ) -> None:
     monkeypatch.setitem(sys.modules, "yaml", None)
     assert run(capsys, "score") == Result(
-        1, "", "mmorch: error: pyyaml is required for this command: pip install 'mmorch[live]'\n"
+        1, "", 'mmorch: error: pyyaml is required for this command: pip install -e ".[live]"\n'
     )
 
 
@@ -962,7 +974,7 @@ def test_score_without_openai_names_the_extra(
     pytest.importorskip("yaml")
     monkeypatch.setitem(sys.modules, "openai", None)
     assert run(capsys, "score") == Result(
-        1, "", "mmorch: error: openai is required for this command: pip install 'mmorch[live]'\n"
+        1, "", 'mmorch: error: openai is required for this command: pip install -e ".[live]"\n'
     )
 
 
@@ -1041,5 +1053,5 @@ def test_serve_without_fastapi_names_the_extra(
     monkeypatch.setitem(sys.modules, "fastapi", None)
 
     assert run(capsys, "serve") == Result(
-        1, "", "mmorch: error: fastapi is required for this command: pip install 'mmorch[matrix]'\n"
+        1, "", 'mmorch: error: fastapi is required for this command: pip install -e ".[matrix]"\n'
     )

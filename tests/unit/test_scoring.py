@@ -24,7 +24,7 @@ from typing import Any
 
 import pytest
 
-from mmorch.errors import DataNotFoundError, MissingDependencyError
+from mmorch.errors import ConfigError, DataNotFoundError, MissingDependencyError
 from mmorch.scoring import (
     ModelScore,
     MultiObjectiveRouter,
@@ -340,11 +340,28 @@ def test_load_config_names_a_missing_file(tmp_path: Path) -> None:
     assert str(path) in str(excinfo.value)
 
 
+def test_load_config_names_a_missing_key(tmp_path: Path) -> None:
+    pytest.importorskip("yaml")
+    path = tmp_path / "scorer.yaml"
+    path.write_text("api: {}\n", encoding="utf-8")
+    with pytest.raises(ConfigError, match="missing required key 'base_url'") as excinfo:
+        load_config(path)
+    assert str(path) in str(excinfo.value)
+
+
+def test_load_config_rejects_a_document_that_is_not_a_mapping(tmp_path: Path) -> None:
+    pytest.importorskip("yaml")
+    path = tmp_path / "scorer.yaml"
+    path.write_text("- just\n- a list\n", encoding="utf-8")
+    with pytest.raises(ConfigError, match="unexpected structure"):
+        load_config(path)
+
+
 def test_load_config_without_yaml_names_the_extra(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setitem(sys.modules, "yaml", None)
     with pytest.raises(MissingDependencyError) as excinfo:
         load_config()
-    assert str(excinfo.value) == "pyyaml is required for this command: pip install 'mmorch[live]'"
+    assert str(excinfo.value) == 'pyyaml is required for this command: pip install -e ".[live]"'
     assert (excinfo.value.package, excinfo.value.extra) == ("pyyaml", "live")
 
 
@@ -1097,7 +1114,7 @@ def test_make_client_passes_the_legacy_values(
 
 def test_make_client_without_openai_names_the_extra(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setitem(sys.modules, "openai", None)
-    with pytest.raises(MissingDependencyError, match=re.escape("pip install 'mmorch[live]'")) as excinfo:
+    with pytest.raises(MissingDependencyError, match=re.escape('pip install -e ".[live]"')) as excinfo:
         make_client(EndpointSettings("http://h/v1", "k"), "https://yaml.example.org/v1")
     assert excinfo.value.package == "openai"
 

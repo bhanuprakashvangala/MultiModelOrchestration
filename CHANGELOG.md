@@ -1,5 +1,12 @@
 # Changelog
 
+## Unreleased
+
+- A missing optional dependency now names the install command that works from a clone, `pip install -e ".[extra]"`
+  (the package is not on PyPI).
+- `mmorch score --config FILE` with a missing key or a malformed YAML document exits 1 with a one-line error naming
+  the file and key, instead of a traceback.
+
 ## 2.0.0
 
 The scripts of the first release are now the installable Python package `mmorch`, with one `mmorch` command. No

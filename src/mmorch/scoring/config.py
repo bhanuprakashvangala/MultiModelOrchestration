@@ -19,7 +19,7 @@ from pathlib import Path
 from types import MappingProxyType
 from typing import Any
 
-from mmorch.errors import MissingDependencyError
+from mmorch.errors import ConfigError, MissingDependencyError
 from mmorch.settings import require_file
 
 
@@ -131,7 +131,8 @@ def load_config(path: Path | None = None) -> ScorerConfig:
     """Load the scorer YAML from path, or the packaged config.yaml when path is None.
 
     The text is read as UTF-8 and parsed with yaml.safe_load. yaml comes with the 'live' extra; without it this
-    raises MissingDependencyError. A path that is not an existing file raises DataNotFoundError.
+    raises MissingDependencyError. A path that is not an existing file raises DataNotFoundError, and a file that
+    lacks a required key or has the wrong shape raises ConfigError.
     """
     try:
         import yaml
@@ -141,4 +142,10 @@ def load_config(path: Path | None = None) -> ScorerConfig:
         text = files("mmorch.scoring").joinpath("config.yaml").read_text(encoding="utf-8")
     else:
         text = require_file(path, "scorer config").read_text(encoding="utf-8")
-    return ScorerConfig.from_mapping(yaml.safe_load(text))
+    source = "packaged config.yaml" if path is None else str(path)
+    try:
+        return ScorerConfig.from_mapping(yaml.safe_load(text))
+    except KeyError as exc:
+        raise ConfigError(f"{source}: missing required key {exc}") from exc
+    except (TypeError, AttributeError) as exc:
+        raise ConfigError(f"{source}: unexpected structure ({exc})") from exc

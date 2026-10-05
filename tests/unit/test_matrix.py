@@ -974,7 +974,7 @@ def test_requests_need_aiohttp(monkeypatch: pytest.MonkeyPatch) -> None:
 
     for error in (health_error.value, generate_error.value):
         assert (error.package, error.extra) == ("aiohttp", "matrix")
-        assert str(error) == "aiohttp is required for this command: pip install 'mmorch[matrix]'"
+        assert str(error) == 'aiohttp is required for this command: pip install -e ".[matrix]"'
     # A missing package is not a failed generation.
     assert endpoint.performance_metrics["success_rate"] == 100
 

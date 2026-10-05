@@ -42,7 +42,7 @@ class MissingDependencyError(MmorchError, ImportError):
     """
 
     def __init__(self, package: str, extra: str) -> None:
-        super().__init__(f"{package} is required for this command: pip install 'mmorch[{extra}]'")
+        super().__init__(f'{package} is required for this command: pip install -e ".[{extra}]"')
         self.package = package
         self.extra = extra
 

@@ -346,7 +346,7 @@ def test_run_baseline_without_requests_names_the_extra(monkeypatch: pytest.Monke
     monkeypatch.setitem(sys.modules, "requests", None)
     with pytest.raises(MissingDependencyError) as excinfo:
         run_baseline("HumanEval", base_url="http://h/v1", api_key="k")
-    assert str(excinfo.value) == "requests is required for this command: pip install 'mmorch[live]'"
+    assert str(excinfo.value) == 'requests is required for this command: pip install -e ".[live]"'
     assert (excinfo.value.package, excinfo.value.extra) == ("requests", "live")
 
 

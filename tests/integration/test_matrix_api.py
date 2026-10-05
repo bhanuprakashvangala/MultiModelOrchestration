@@ -603,7 +603,7 @@ def test_create_app_needs_fastapi(monkeypatch: pytest.MonkeyPatch) -> None:
         create_app()
 
     assert (excinfo.value.package, excinfo.value.extra) == ("fastapi", "matrix")
-    assert str(excinfo.value) == "fastapi is required for this command: pip install 'mmorch[matrix]'"
+    assert str(excinfo.value) == 'fastapi is required for this command: pip install -e ".[matrix]"'
 
 
 def test_serve_runs_uvicorn_with_the_settings(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -625,7 +625,7 @@ def test_serve_needs_uvicorn(monkeypatch: pytest.MonkeyPatch) -> None:
     with pytest.raises(MissingDependencyError) as excinfo:
         serve(MatrixSettings())
 
-    assert str(excinfo.value) == "uvicorn is required for this command: pip install 'mmorch[matrix]'"
+    assert str(excinfo.value) == 'uvicorn is required for this command: pip install -e ".[matrix]"'
 
 
 # ---------------------------------------------------------------- aiohttp requests against a stub model server

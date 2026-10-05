@@ -164,7 +164,7 @@ def test_errors_are_mmorch_errors_and_builtin_errors(error: type[MmorchError], b
 
 def test_missing_dependency_error_names_the_extra() -> None:
     error = MissingDependencyError("pyyaml", "live")
-    assert str(error) == "pyyaml is required for this command: pip install 'mmorch[live]'"
+    assert str(error) == 'pyyaml is required for this command: pip install -e ".[live]"'
     assert error.package == "pyyaml"
     assert error.extra == "live"
 
@@ -172,5 +172,5 @@ def test_missing_dependency_error_names_the_extra() -> None:
 def test_missing_dependency_error_survives_pickling() -> None:
     error = pickle.loads(pickle.dumps(MissingDependencyError("fastapi", "matrix")))
     assert isinstance(error, MissingDependencyError)
-    assert str(error) == "fastapi is required for this command: pip install 'mmorch[matrix]'"
+    assert str(error) == 'fastapi is required for this command: pip install -e ".[matrix]"'
     assert (error.package, error.extra) == ("fastapi", "matrix")

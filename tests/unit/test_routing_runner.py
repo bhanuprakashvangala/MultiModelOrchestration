@@ -623,7 +623,7 @@ def test_make_client_without_openai(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setitem(sys.modules, "openai", None)
     with pytest.raises(MissingDependencyError) as excinfo:
         make_client(EndpointSettings("http://127.0.0.1:9/v1", "key"))
-    assert "pip install 'mmorch[live]'" in str(excinfo.value)
+    assert 'pip install -e ".[live]"' in str(excinfo.value)
     assert (excinfo.value.package, excinfo.value.extra) == ("openai", "live")
     assert isinstance(excinfo.value.__cause__, ImportError)
 
