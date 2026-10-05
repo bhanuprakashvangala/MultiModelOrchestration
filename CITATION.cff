@@ -1,6 +1,7 @@
 cff-version: 1.2.0
 message: "If you use this code or data, please cite the paper."
 title: "Efficient Multi-Model Orchestration for Self-Hosted Large Language Models"
+version: "2.0.0"
 repository-code: "https://github.com/bhanuprakashvangala/MultiModelOrchestration"
 license: MIT
 authors:

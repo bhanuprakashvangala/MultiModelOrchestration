@@ -14,20 +14,33 @@ from the traces.
 
 ## How the runs were made
 
-- **Tier classifiers** (`src/routing/smart_routing.py`). Keyword rules: a prompt that contains a HIGH phrase
+- **Tier classifiers** (`src/mmorch/routing/classifier.py`). Keyword rules: a prompt that contains a HIGH phrase
   ("prove", "derive", "analyze", ...) is HIGH; otherwise one that contains a LOW phrase ("what is",
   "which of the following", ...) is LOW; everything else is MEDIUM. LLM prompt: `llama3` is asked to reply LOW,
   MEDIUM or HIGH, and any other reply or a failed call gives MEDIUM.
-- **Models.** LOW goes to `llama3`, MEDIUM to `qwen3` and HIGH to `deepseek-r1`, called with streaming through the
-  OpenAI-compatible API of the National Research Platform's managed LLM service. The runners ran as Kubernetes Jobs,
-  one per benchmark and classifier.
+- **Models** (`src/mmorch/routing/runner.py`). LOW goes to `llama3`, MEDIUM to `qwen3` and HIGH to `deepseek-r1`,
+  called with streaming through the OpenAI-compatible API of the National Research Platform's managed LLM service.
+  The runners ran as Kubernetes Jobs, one per benchmark and classifier.
 - **Metrics.** Success means the streamed request completed without an error or timeout; responses are not scored
   for correctness. TTFT is the time until the first streamed token.
-- **Table 1** (`src/baseline/strategy_baseline.py`). For each question id, one request per strategy (balanced,
+- **Table 1** (`src/mmorch/baseline.py`). For each question id, one request per strategy (balanced,
   quality, speed, cost, baseline) with a fixed short prompt per benchmark, sent to `gemma3`, `llama3-sdsc` or
   `llama3`; success is HTTP 200 within 180 s.
+- **Operator profiles** (`src/mmorch/scoring/`). The normalized quality / latency / cost score (Eq. 2) with the four
+  operator profiles; the profile weights and the relative per-model scores are in `scoring/config.yaml`.
 
 ## Layout
+
+The package follows the paper:
+
+| Code | Paper |
+|---|---|
+| `src/mmorch/routing/` | Pick: the tier classifiers and the routing runner that recorded the traces behind Figs. 4-11 |
+| `src/mmorch/scoring/` | the normalized quality / latency / cost score (Eq. 2) with the four operator profiles |
+| `src/mmorch/baseline.py` | the five-strategy runs behind Table 1 |
+| `src/mmorch/paper/` | Table 1 and Figs. 4-11 rebuilt from the traces, each value compared with the paper |
+| `src/mmorch/matrix/` | the earlier model x backend matrix prototype: registry, health checks, on-demand deploy, API |
+| `deploy/helm/pick-and-spin-umbrella/` | Spin: the Helm umbrella chart, 3 models x 3 backends (vLLM, TGI, TensorRT-LLM) |
 
 ```
 data/prompts.jsonl.gz              the 31,019 prompts (HumanEval, MBPP, GSM8K, MATH, TruthfulQA, ARC, HellaSwag, MMLU-Pro)
@@ -35,31 +48,81 @@ results/traces/                    experiment traces (no model responses)
   routing_keyword.csv.gz           keyword rules: tier, model, latency, TTFT, tokens, success per prompt
   routing_llm.csv.gz               LLM-prompt classifier, same columns
   baseline_strategies.csv.gz       the five-strategy runs behind Table 1
-scripts/reproduce.py               rebuilds Table 1 and Figs. 4-11 from results/traces/
-src/routing/smart_routing.py       Pick: tier classification and routing (the runner that produced the traces)
-src/routing/multi_objective.py     normalized quality / latency / cost score (Eq. 2) with the four operator profiles
-src/baseline/strategy_baseline.py  the Table 1 runner
-src/matrix/                        earlier model x backend matrix prototype: registry, health checks, on-demand deploy, API
-deploy/helm/pick-and-spin-umbrella Helm umbrella chart: 3 models x 3 backends (vLLM, TGI, TensorRT-LLM)
+results/                           the tables, figures and verification.csv that mmorch reproduce writes
+src/mmorch/cli.py                  the mmorch command
 deploy/jobs/                       Kubernetes Job template for the routing runs
+deploy/Dockerfile                  the image that the Job runs
+tests/                             unit and integration tests; tests/golden/ holds the reference outputs
+constraints/reproduce.txt          the plotting stack that wrote results/figures/
 ```
 
-## Setup
+## Install
 
 ```bash
 git clone https://github.com/bhanuprakashvangala/MultiModelOrchestration.git
 cd MultiModelOrchestration
 python -m venv .venv
 source .venv/bin/activate        # Windows: .venv\Scripts\activate
-pip install -r requirements.txt
+pip install -e .
 ```
+
+This needs Python 3.11 or newer. The base install (numpy and matplotlib) is all that `mmorch reproduce` needs; the
+other commands need an extra:
+
+| Extra | Adds | Needed by |
+|---|---|---|
+| `live` | openai, requests, pyyaml | `mmorch route`, `mmorch baseline`, `mmorch score` |
+| `matrix` | fastapi, uvicorn, pydantic, aiohttp | `mmorch serve` |
+| `matrix-ml` | torch, transformers | `mmorch serve` with the DistilBERT domain classifier (keyword rules without it) |
+| `dev` | `live` and `matrix`, plus pytest, httpx, ruff, mypy, type stubs and pre-commit | development |
+
+```bash
+pip install -e ".[live]"                # route, baseline, score
+pip install -e ".[matrix,matrix-ml]"    # serve
+```
+
+A command whose extra is missing stops with the `pip install` command that adds it.
+
+## Commands
+
+Everything runs through one command, `mmorch` (or `python -m mmorch`):
+
+| Command | What it does | Needs |
+|---|---|---|
+| `mmorch reproduce` | rebuilds Table 1 and Figs. 4-11 from `results/traces/` and compares each value with the paper | base install |
+| `mmorch route BENCHMARK` | routes one benchmark's prompts to the three tiers on a live endpoint | `live`, `LLM_API_BASE` |
+| `mmorch baseline [BENCHMARK]` | sends the five-strategy requests of Table 1 for one benchmark | `live`, `LLM_API_BASE` |
+| `mmorch score` | runs the multi-objective scorer on three demo queries | `live` |
+| `mmorch serve` | serves the API of the model x backend prototype | `matrix`, optionally `matrix-ml` |
+
+`mmorch COMMAND --help` lists the options of a command. Options before the command apply to all of them: `--root DIR`
+is the directory that holds `data/` and `results/` (default: the current directory, so run from the repository root
+or pass `--root`), `-v` adds debug logging, `-q` keeps only warnings and errors, and `--version` prints the version.
+Results go to stdout; progress, warnings and errors go to stderr. The exit status is 0 on success; 1 for an error,
+printed as `mmorch: error: ...` (such as a missing input file, extra or environment variable), or for a
+reproduction that differs from the paper; and 2 for a usage error.
+
+The commands of the first release map to these; the scripts' arguments and defaults are unchanged:
+
+| v1.0.0 | 2.0.0 |
+|---|---|
+| `pip install -r requirements.txt` | `pip install -e .` (reproduce) or `pip install -e ".[live]"` (route, baseline, score) |
+| `pip install -r requirements-matrix.txt` | `pip install -e ".[matrix,matrix-ml]"` (serve) |
+| `python scripts/reproduce.py` | `mmorch reproduce` |
+| `python src/routing/smart_routing.py HumanEval --routing llm --workers 50` | `mmorch route HumanEval --routing llm --workers 50` |
+| `python src/baseline/strategy_baseline.py HumanEval` | `mmorch baseline HumanEval` |
+| `python src/routing/multi_objective.py` | `mmorch score` |
+| `python src/matrix/api_server.py` | `mmorch serve` |
+
+The original scripts are kept at tag `v1.0.0` (`git checkout v1.0.0`). [CHANGELOG.md](CHANGELOG.md) lists the other
+changes of 2.0.0; none of them changes a number.
 
 ## Reproduce
 
 ### Tables and figures from the traces (no GPU, a few seconds)
 
 ```bash
-python scripts/reproduce.py
+mmorch reproduce
 ```
 
 This writes `results/table1_baseline.csv`, one CSV per figure (`fig4_*` to `fig11_*`), PNGs in `results/figures/`,
@@ -67,19 +130,32 @@ and `results/verification.csv` with each value next to the one printed in the pa
 on the prompts and checks that they give the tiers recorded in the trace. It exits non-zero if any value or tier
 differs.
 
+Run from the repository root, it rewrites the committed CSVs byte for byte; `--out DIR` writes the files elsewhere.
+The PNG bytes also depend on the plotting stack (see [Development](#development)).
+
 ### Live runs
 
 Point the runner at an OpenAI-compatible endpoint that serves a small, a medium and a large model:
 
 ```bash
+pip install -e ".[live]"
 cp .env.example .env              # set LLM_API_BASE, LLM_API_KEY and the served model names
 set -a; source .env; set +a
-python src/routing/smart_routing.py HumanEval --routing keyword --workers 20
-python src/routing/smart_routing.py HumanEval --routing llm --workers 50
+mmorch route HumanEval --routing keyword --workers 20
+mmorch route HumanEval --routing llm --workers 50
 ```
 
-Add `--limit 50` for a quick check. Output goes to `results/live/<routing>/<benchmark>_<routing>.csv` in the same
-format as the traces; `deploy/jobs/smart-routing-job.yaml` runs the same command as a Kubernetes Job.
+Add `--limit 50` for a quick check. Output goes to `results/live/<routing>/<benchmark>_<routing>.csv` with the
+runner's 15 columns. The released traces are a reduced 13-column export of such rows: they add the benchmark, drop
+the question, routing method and response, write success as 1/0 and the timings as floats, and record a failed
+request's error as `timeout`, where the runner writes the exception message.
+`deploy/jobs/smart-routing-job.yaml` runs the same command as a Kubernetes Job, in the image that `deploy/Dockerfile`
+builds.
+
+`mmorch baseline HumanEval` sends the Table 1 requests for one benchmark to the same endpoint and writes
+`results/live/baseline/HumanEval_baseline.csv`. The model for each strategy comes from Python's string hash, so the
+assignment changes from run to run unless `PYTHONHASHSEED` is set. `mmorch score` runs the multi-objective scorer on
+three demo queries with the packaged `src/mmorch/scoring/config.yaml`, or with the file given by `--config`.
 
 ### Self-hosting the model matrix
 
@@ -96,14 +172,50 @@ you want to serve and pass them to the serving image; the vLLM containers need a
 subchart templates do not set. The subcharts have no autoscaler, so each Deployment starts with one replica; scale
 idle pairs to zero with `kubectl scale deployment <name> --replicas=0` or with KEDA or Knative.
 
-`src/matrix/` (dependencies in `requirements-matrix.txt`) keeps a registry of model/backend endpoints with health
+`src/mmorch/matrix/` (extras `matrix` and `matrix-ml`) keeps a registry of model/backend endpoints with health
 checks, deploys a pair with Helm when a request needs it, shuts pairs down after 30 idle minutes, and serves a
-FastAPI interface. Its registry lists domain models (BioGPT, ChemBERTa, MatSciBERT); edit `_initialize_endpoints`
-in `backend_manager.py` for other models, and set `MATRIX_CHART_DIR` to your chart.
+FastAPI interface. Its registry lists domain models (BioGPT, ChemBERTa, MatSciBERT); edit `default_endpoints`
+in `src/mmorch/matrix/endpoints.py` for other models, and set `MATRIX_CHART_DIR` to your chart.
+
+```bash
+pip install -e ".[matrix,matrix-ml]"
+mmorch serve
+```
+
+`--host`, `--port`, `--namespace` and `--chart-dir` take precedence over `API_HOST`, `API_PORT`,
+`KUBERNETES_NAMESPACE` and `MATRIX_CHART_DIR`. The interactive API documentation is served at `/api/docs`.
+`mmorch serve` is the entry point that reads these variables: `uvicorn --factory mmorch.matrix.api:create_app` serves
+the same API, but with the default namespace and chart directory.
+
+## Development
+
+```bash
+pip install -e ".[dev]"
+pytest                   # all tests; pytest tests/unit is the quick loop
+ruff check .
+ruff format --check .
+mypy
+pre-commit install       # optional: ruff and basic file checks on every commit
+```
+
+The tests never write into `results/`. `tests/golden/` holds the SHA-256 digests of the files that
+`scripts/reproduce.py` of v1.0.0 wrote, and its console output; they were recorded once and are never regenerated
+from the code under test. `mmorch reproduce` has to print that output and write those CSVs on every platform. The
+PNG bytes also depend on the plotting stack, so they are compared on the stack that wrote `results/figures/`:
+CPython 3.12 on Windows with the versions pinned in `constraints/reproduce.txt`.
+
+```bash
+pip install -c constraints/reproduce.txt -e ".[dev]"
+MMORCH_STRICT_FIGURES=1 pytest     # PowerShell: $env:MMORCH_STRICT_FIGURES = "1"; pytest
+```
+
+On any other stack the PNG comparison is skipped unless `MMORCH_STRICT_FIGURES=1` is set, which makes it fail on any
+difference. CI (`.github/workflows/ci.yml`) runs the lint, the tests on Linux and Windows, the base install with the
+pinned stack, and the package build.
 
 ## Results
 
-`scripts/reproduce.py` computes every value below from `results/traces/`. Each one equals the value in the paper;
+`mmorch reproduce` computes every value below from `results/traces/`. Each one equals the value in the paper;
 `results/verification.csv` lists all 88 comparisons.
 
 Table 1, five-strategy runs per benchmark:

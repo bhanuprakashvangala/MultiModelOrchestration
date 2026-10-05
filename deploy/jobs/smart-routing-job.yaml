@@ -1,8 +1,10 @@
 # One Job per benchmark and routing method, as in the recorded runs.
-# Build an image from this repository, then:
+# Build an image from this repository and push it to your registry, then set `image` below:
+#   docker build -f deploy/Dockerfile -t <registry>/mmorch:2.0.0 .
+#   docker push <registry>/mmorch:2.0.0
 #   kubectl create secret generic llm-api --from-literal=LLM_API_BASE=https://.../v1 --from-literal=LLM_API_KEY=...
 #   kubectl apply -f deploy/jobs/smart-routing-job.yaml
-# Results are written inside the pod to results/live/; mount a volume there to keep them.
+# Results are written inside the pod to /app/results/live/; mount a volume there to keep them.
 apiVersion: batch/v1
 kind: Job
 metadata:
@@ -15,7 +17,8 @@ spec:
       containers:
         - name: runner
           image: REPLACE_WITH_YOUR_IMAGE
-          command: ["python", "src/routing/smart_routing.py", "HumanEval", "--routing", "keyword", "--workers", "20"]
+          workingDir: /app
+          command: ["mmorch", "route", "HumanEval", "--routing", "keyword", "--workers", "20"]
           envFrom:
             - secretRef: {name: llm-api}
           resources:

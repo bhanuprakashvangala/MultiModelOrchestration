@@ -1,0 +1,120 @@
+[build-system]
+requires = ["hatchling>=1.27"]
+build-backend = "hatchling.build"
+
+[project]
+name = "mmorch"
+version = "2.0.0"
+description = "Multi-model orchestration for self-hosted LLMs: tier routing, multi-objective model scoring and the DAI 2026 reproduction"
+readme = "README.md"
+license = "MIT"
+license-files = ["LICENSE"]
+authors = [
+    { name = "Bhanu Prakash Vangala" },
+    { name = "Tanu Malik" },
+]
+# enum.StrEnum (routing tiers) needs Python 3.11.
+requires-python = ">=3.11"
+classifiers = [
+    "Intended Audience :: Science/Research",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+    "Typing :: Typed",
+]
+# The base install runs `mmorch reproduce`. matplotlib 3.7 is the first release whose bar_label accepts
+# '{:,.0f}' format strings.
+dependencies = [
+    "numpy>=1.24",
+    "matplotlib>=3.7",
+]
+
+[project.optional-dependencies]
+# Live runs against an OpenAI-compatible endpoint: `mmorch route`, `mmorch baseline` and `mmorch score`.
+live = ["openai>=1.30", "requests>=2.31", "pyyaml>=6.0"]
+# The model x backend prototype: `mmorch serve`.
+matrix = ["fastapi>=0.110", "uvicorn>=0.29", "pydantic>=2.0", "aiohttp>=3.9"]
+# The DistilBERT domain classifier of the prototype; without it, `mmorch serve` classifies by keywords.
+matrix-ml = ["torch>=2.1", "transformers>=4.40"]
+dev = [
+    "mmorch[live,matrix]",
+    "pytest>=8",
+    "httpx>=0.27",
+    "ruff>=0.6",
+    "mypy>=1.10",
+    "types-requests",
+    "types-PyYAML",
+    "pre-commit>=3",
+]
+
+[project.scripts]
+mmorch = "mmorch.cli:main"
+
+[project.urls]
+Paper = "https://arxiv.org/abs/2512.22402"
+Repository = "https://github.com/bhanuprakashvangala/MultiModelOrchestration"
+
+[tool.hatch.build.targets.wheel]
+# Ships the code plus its only data files, scoring/config.yaml and py.typed.
+packages = ["src/mmorch"]
+
+[tool.hatch.build.targets.sdist]
+# data/, results/, deploy/ and models/ never ship.
+only-include = [
+    "src",
+    "tests",
+    "constraints",
+    "README.md",
+    "LICENSE",
+    "CHANGELOG.md",
+    "CITATION.cff",
+    "pyproject.toml",
+]
+
+[tool.ruff]
+line-length = 120
+target-version = "py311"
+src = ["src", "tests"]
+
+[tool.ruff.lint]
+select = ["E", "W", "F", "I", "B", "UP", "SIM", "RUF", "N", "PT", "T20", "TID"]
+# B905 (zip without strict=) stays off so that ported zip() calls stay verbatim.
+ignore = ["B905"]
+
+[tool.ruff.lint.flake8-bugbear]
+# Path('.') is the default root of settings.Paths.
+extend-immutable-calls = ["pathlib.Path"]
+
+[tool.ruff.lint.flake8-tidy-imports.banned-api]
+"matplotlib.pyplot".msg = "use matplotlib.figure.Figure (no global pyplot state)"
+
+[tool.ruff.lint.per-file-ignores]
+# Only the command line and the tests may print; everything else logs.
+"src/mmorch/cli.py" = ["T20"]
+"tests/**" = ["T20"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["mmorch"]
+
+[tool.mypy]
+files = ["src/mmorch"]
+python_version = "3.11"
+strict = true
+
+[[tool.mypy.overrides]]
+module = ["torch.*", "transformers.*"]
+ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+# transformers is untyped.
+module = ["mmorch.matrix.domain"]
+disallow_untyped_calls = false
+warn_return_any = false
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-ra --strict-markers --import-mode=importlib"

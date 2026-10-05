@@ -1,0 +1,15 @@
+# Build context of deploy/Dockerfile (docker build -f deploy/Dockerfile .). The image copies only pyproject.toml,
+# README.md, LICENSE, src/ and data/; everything below stays out of the context.
+.git
+.venv
+.env
+results/
+tests/
+models/
+**/__pycache__
+build/
+dist/
+*.egg-info
+.mypy_cache/
+.pytest_cache/
+.ruff_cache/

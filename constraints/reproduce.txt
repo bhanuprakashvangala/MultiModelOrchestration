@@ -1,0 +1,16 @@
+# The plotting stack that wrote the committed results/figures (CPython 3.12 on Windows):
+#     pip install -c constraints/reproduce.txt -e .
+# With it, `mmorch reproduce` rewrites the five PNGs byte for byte (tests/golden/reproduce_hashes.txt).
+# Bumping any pin means regenerating results/figures and tests/golden/reproduce_hashes.txt in the same
+# commit, with a justification.
+numpy==2.0.2
+matplotlib==3.10.8
+pillow==11.3.0
+contourpy==1.3.3
+cycler==0.12.1
+fonttools==4.62.1
+kiwisolver==1.5.0
+packaging==25.0
+pyparsing==3.3.2
+python-dateutil==2.9.0.post0
+six==1.17.0

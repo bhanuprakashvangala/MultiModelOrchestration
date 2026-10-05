@@ -1,9 +1,0 @@
-# Model x backend matrix prototype (src/matrix)
-fastapi>=0.110
-uvicorn>=0.29
-pydantic>=2.0
-aiohttp>=3.9
-requests>=2.31
-torch>=2.1
-transformers>=4.40
-numpy>=1.24

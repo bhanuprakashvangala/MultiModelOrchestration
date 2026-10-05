@@ -1,4 +1,4 @@
-# Configuration for src/routing/multi_objective.py.
+# Packaged configuration of the multi-objective scorer; run `mmorch score --config FILE` to use a different file.
 # Credentials come from the environment: LLM_API_BASE, LLM_API_KEY (see .env.example).
 
 api:

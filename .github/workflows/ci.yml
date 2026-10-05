@@ -1,0 +1,152 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: pyproject.toml
+      - run: python -m pip install -e ".[dev]"
+      - run: ruff check .
+      - run: ruff format --check .
+      - run: mypy
+
+  test:
+    name: test (${{ matrix.os }}, Python ${{ matrix.python-version }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest]
+        python-version: ["3.11", "3.12", "3.13"]
+        include:
+          # The platform that produced the committed results: catches CRLF and path problems.
+          - os: windows-latest
+            python-version: "3.12"
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: pip
+          cache-dependency-path: pyproject.toml
+      - run: python -m pip install -e ".[dev]"
+      - run: pytest
+
+  base-install:
+    # The platform and plot stack that wrote the committed results/figures (CPython 3.12 on Windows, pinned in
+    # constraints/reproduce.txt), with no extras installed: all 13 committed outputs must come back byte for byte.
+    name: base-install (windows-latest, Python 3.12, pinned plot stack)
+    runs-on: windows-latest
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: |
+            pyproject.toml
+            constraints/reproduce.txt
+      - name: Install the package without extras, with the pinned plot stack
+        run: python -m pip install -c constraints/reproduce.txt . pytest
+      - run: mmorch --version
+      - name: Reproduce into results/ (exits 1 unless 88/88 numbers and 100% of the tiers match)
+        run: mmorch reproduce
+      - name: Check whether this runner rewrote the committed figures byte for byte
+        id: figures
+        run: |
+          if git diff --quiet -- results/figures/; then
+            echo "identical=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "identical=false" >> "$GITHUB_OUTPUT"
+            echo "::warning title=Figures differ from results/figures::The PNG bytes written on this runner differ from the committed ones; comparing mmorch with tag v1.0.0 on this runner instead."
+          fi
+
+      - name: Tests, with the figures compared byte for byte
+        if: steps.figures.outputs.identical == 'true'
+        env:
+          MMORCH_STRICT_FIGURES: "1"
+        run: pytest tests/unit/test_import_hygiene.py tests/integration/test_reproduce.py tests/integration/test_trace_contract.py
+      - name: The committed results are unchanged
+        if: steps.figures.outputs.identical == 'true'
+        run: git diff --exit-code -- results/
+
+      # Fallback for a runner that cannot reproduce the committed PNG bytes on the pinned stack. results/figures is
+      # never regenerated. Instead, everything but the PNG bytes is checked as above, and the v1.0.0 script and
+      # `mmorch reproduce` must write the same 13 files and the same report on this same runner. A change in the
+      # figures made by mmorch itself fails here too.
+      - name: Tests, without the PNG byte comparison
+        if: steps.figures.outputs.identical == 'false'
+        run: >-
+          pytest tests/unit/test_import_hygiene.py tests/integration/test_reproduce.py
+          tests/integration/test_trace_contract.py
+          --deselect tests/integration/test_reproduce.py::test_png_is_byte_identical_to_the_golden_on_the_reference_stack
+      - name: The committed CSVs are unchanged
+        if: steps.figures.outputs.identical == 'false'
+        run: git diff --exit-code -- results/ ':(exclude)results/figures/'
+      - name: mmorch and tag v1.0.0 write the same outputs on this runner
+        if: steps.figures.outputs.identical == 'false'
+        run: |
+          git fetch --no-tags --depth=1 origin +refs/tags/v1.0.0:refs/tags/v1.0.0
+          git worktree add ../legacy v1.0.0
+          python ../legacy/scripts/reproduce.py > "$RUNNER_TEMP/legacy_stdout.txt"
+          mmorch --root ../legacy reproduce --out "$RUNNER_TEMP/new" > "$RUNNER_TEMP/new_stdout.txt"
+          status=0
+          for path in $(cut -d '*' -f 2 tests/golden/reproduce_hashes.txt | tr -d '\r'); do
+            cmp "../legacy/results/$path" "$RUNNER_TEMP/new/$path" || status=1
+          done
+          # The last line names the output directory, which differs between the two runs.
+          diff <(sed '$d' "$RUNNER_TEMP/legacy_stdout.txt") <(sed '$d' "$RUNNER_TEMP/new_stdout.txt") || status=1
+          exit "$status"
+
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: pyproject.toml
+      - run: python -m pip install build twine
+      - run: python -m build
+      - run: twine check dist/*
+      - name: The wheel holds only the package, with scoring/config.yaml and py.typed
+        shell: python
+        run: |
+          import tarfile
+          import tomllib
+          import zipfile
+          from pathlib import Path
+
+          version = tomllib.loads(Path("pyproject.toml").read_text(encoding="utf-8"))["project"]["version"]
+          [wheel] = Path("dist").glob("*.whl")
+          names = zipfile.ZipFile(wheel).namelist()
+          stray = [name for name in names if not name.startswith(("mmorch/", f"mmorch-{version}.dist-info/"))]
+          assert not stray, f"unexpected wheel members: {stray}"
+          missing = {"mmorch/scoring/config.yaml", "mmorch/py.typed"}.difference(names)
+          assert not missing, f"missing from the wheel: {sorted(missing)}"
+          # data/, results/, deploy/ and models/ never ship, not even in the sdist.
+          [sdist] = Path("dist").glob("*.tar.gz")
+          tops = {member.name.split("/")[1] for member in tarfile.open(sdist) if member.name.count("/")}
+          shipped = sorted(tops & {"data", "results", "deploy", "models"})
+          assert not shipped, f"the sdist ships {shipped}"
+          print(f"{wheel.name}: {len(names)} members; {sdist.name}: {sorted(tops)}")
