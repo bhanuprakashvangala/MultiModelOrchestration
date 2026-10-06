@@ -271,13 +271,14 @@ Per benchmark (Figs. 6, 8 and 10):
 ## Citation
 
 ```bibtex
-@inproceedings{vangala2026multimodel,
-  title         = {Efficient Multi-Model Orchestration for Self-Hosted Large Language Models},
-  author        = {Vangala, Bhanu Prakash and Malik, Tanu},
-  booktitle     = {DAI Workshop at AAAI 2026},
-  year          = {2026},
-  eprint        = {2512.22402},
-  archivePrefix = {arXiv}
+@misc{vangala2025efficientmultimodelorchestrationselfhosted,
+      title={Efficient Multi-Model Orchestration for Self-Hosted Large Language Models},
+      author={Bhanu Prakash Vangala and Tanu Malik},
+      year={2025},
+      eprint={2512.22402},
+      archivePrefix={arXiv},
+      primaryClass={cs.DC},
+      url={https://arxiv.org/abs/2512.22402},
 }
 ```
 
